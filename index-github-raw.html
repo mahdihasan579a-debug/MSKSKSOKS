@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>D-C Mods Hub</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#030811;color:#fff;font-family:Arial,sans-serif}
+.wrap{max-width:700px;margin:auto;padding:38px 18px 60px}h1{font-size:42px;margin:0 0 22px;font-weight:800}
+.search{display:flex;gap:10px;margin-bottom:25px}input{flex:1;background:#121b2d;border:0;border-radius:30px;padding:17px 22px;color:white;font-size:17px;outline:none}
+button{width:62px;border:0;border-radius:22px;background:#121b2d;color:#3183ff;font-size:27px}
+.card{background:#101a2a;border-radius:24px;padding:20px;margin:17px 0;box-shadow:0 8px 25px #0008}
+.row{display:flex;gap:18px}.icon{width:105px;height:105px;border-radius:5px;background:#263040;object-fit:cover;flex:none}
+.title{font-size:25px;font-weight:800;margin:2px 0 8px}.desc{color:#8492ad;font-size:15px;font-weight:600;line-height:1.25}
+.download{display:block;text-align:center;text-decoration:none;background:#3183ff;color:#fff;padding:16px;border-radius:25px;margin-top:18px;font-size:19px;font-weight:800}
+.status{text-align:center;color:#8290aa;padding:25px;display:none}
+@media(max-width:500px){h1{font-size:34px}.icon{width:90px;height:90px}.title{font-size:19px}.desc{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1 id="title">D-C Mods Hub</h1>
+<div class="search"><input id="search" placeholder="Search apps..."><button>⌕</button></div>
+<div id="list"></div><div id="status" class="status"></div>
+</div>
+<script>
+/*
+  PALITAN LANG ANG CONFIG_URL:
+  Format:
+  https://raw.githubusercontent.com/USERNAME/REPOSITORY/refs/heads/main/config.json
+*/
+const CONFIG_URL="https://raw.githubusercontent.com/USERNAME/REPOSITORY/refs/heads/main/config.json";
+let apps=[];
+const list=document.getElementById("list"),status=document.getElementById("status");
+function esc(v){return String(v??"").replace(/[&<>"']/g,x=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x]))}
+function render(){
+ const q=document.getElementById("search").value.toLowerCase();
+ const items=apps.filter(a=>(a.title+" "+a.description).toLowerCase().includes(q));
+ list.innerHTML=items.map(a=>`<div class="card"><div class="row">
+ <img class="icon" src="${esc(a.icon)}" alt="">
+ <div><div class="title">${esc(a.title)}</div><div class="desc">${esc(a.description)}</div></div>
+ </div><a class="download" href="${esc(a.url)}" target="_blank" rel="noopener">Download</a></div>`).join("");
+ status.style.display=items.length?"none":"block";if(!items.length)status.textContent="No apps found.";
+}
+async function load(){
+ try{
+  const r=await fetch(CONFIG_URL+"?v="+Date.now(),{cache:"no-store"});
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  const data=await r.json();
+  apps=Array.isArray(data.apps)?data.apps:[];
+  document.title=data.siteTitle||"D-C Mods Hub";
+  document.getElementById("title").textContent=data.siteTitle||"D-C Mods Hub";
+  render();
+ }catch(e){
+  status.style.display="block";
+  status.textContent="Config error. Palitan ang CONFIG_URL sa index.html gamit ang Raw GitHub link ng config.json.";
+ }
+}
+document.getElementById("search").addEventListener("input",render);load();
+</script>
+</body>
+</html>
